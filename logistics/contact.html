@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Freight • Logistics</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+<body>
+  <header>
+    <div class="logo">
+  <img src="img/image - 2025-11-18T131510.793.png" alt="logo">
+  <div class="logo-text">
+    <span class="main">EASYMOVE</span>
+    <span class="sub">LOGISTICS</span>
+  </div>
+</div>
+
+    <nav>
+      <ul id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="solutions.html">Solutions</a></li>
+        <li><a href="tracking.html">Tracking</a></li>
+      </ul>
+    </nav>
+
+    <a href="contact.html" class="btn">Contact Us</a>
+    <button class="menu-toggle" id="menu-toggle">&#9776;</button>
+  </header>
+
+
+
+
+  <!-- ===================== CONTACT HERO ===================== -->
+<section class="contact-hero">
+  <h1>Contact Us</h1>
+  <p>We’re here to assist you with delivery, tracking, logistics support and more.</p>
+</section>
+
+<!-- ===================== CONTACT GRID ===================== -->
+<section class="contact-section">
+  <div class="contact-info-box">
+    <h2>Get in Touch</h2>
+    <p><strong>Phone:</strong> +1 201 844 0198</p>
+    <p><strong>Email:</strong> Easymovelogistics@gmail.com</p>
+    <p><strong>Address:</strong> New York, USA</p>
+  </div>
+
+  <div class="contact-form-box">
+  <h2>Send us a Message</h2>
+
+  <form id="contactForm">
+    
+    <div class="form-group">
+      <input type="text" name="fullName" placeholder="Full Name" required>
+    </div>
+
+    <div class="form-group">
+      <input type="email" name="email" placeholder="Email Address" required>
+    </div>
+
+    <div class="form-group">
+      <input type="text" name="phone" placeholder="Phone Number" required>
+    </div>
+
+    <div class="form-group">
+      <textarea name="message" placeholder="Write your message..." required></textarea>
+    </div>
+
+    <button type="submit" class="contact-btn" id="sendBtn">Submit Message</button>
+  </form>
+</div>
+
+<!-- SUCCESS POPUP -->
+<div class="popup-overlay" id="popupOverlay"></div>
+
+<div class="popup-box" id="popupBox">
+  <h3>🎉 Message Sent Successfully!</h3>
+  <p>Thank you for contacting us. Our support team will get back to you shortly.</p>
+  <button id="popupOkBtn" class="popup-btn">OK</button>
+</div>
+
+
+
+<!-- ===================== GOOGLE MAP (USA) ===================== -->
+<section class="map-section">
+  <iframe 
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d24157.56800624497!2d-74.0147821!3d40.7127281!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a31616b0179%3A0xddd30a3f969dace!2sNew%20York%20City%2C%20NY%2010007%2C%20USA!5e0!3m2!1sen!2sus!4v1700256849184!5m2!1sen!2sus" 
+    width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy">
+  </iframe>
+</section>
+
+
+
+
+
+
+
+ <!-- FOOTER SECTION -->
+
+  <footer class="footer">
+    <div class="footer-container">
+      
+      <!-- Contact Card -->
+      <div class="footer-left">
+        <h2>Global Logistics Partner for<br>Seamless Supply Chains</h2>
+        <p>Got a Logistic Service?</p>
+       <a href="contact.html" class="contact-btn">Contact Us</a>
+      </div>
+
+      <!-- Footer Links -->
+      <div class="footer-columns">
+        <div class="footer-column">
+          <h4>Menu</h4>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="solutions.html">Solutions</a></li>
+            <li><a href="tracking.html">Tracking</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="team.html">Our Team</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Services</h4>
+          <ul>
+            <li><a href="services.html">Global Freight Forwarding</a></li>
+            <li><a href="services.html">Intelligent Warehousing</a></li>
+            <li><a href="services.html">Domestic Trucking & FTL/LTL</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-container footer-bottom">
+      <div class="language-select">
+        <select>
+          <option>English (US)</option>
+          <option>English (UK)</option>
+          <option>Español</option>
+          <option>Français</option>
+        </select>
+      </div>
+      
+      <div class="footer-legal">
+        Terms of Service &nbsp; | &nbsp; Privacy Policy
+      </div>
+
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-x-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
+  </footer>
+<!-- LEFT CONTACT WIDGET -->
+<div class="contact-widget">
+    <button id="contactMainBtn" class="contact-main-btn">
+        <i class="fa-solid fa-envelope"></i>
+    </button>
+
+    <div id="contactIcons" class="contact-icons">
+        <a href="https://t.me/Easymovelogistics247" target="_blank" class="telegram">
+            <i class="fa-brands fa-telegram"></i>
+        </a>
+
+        <a href="https://wa.me/12018440198" target="_blank" class="whatsapp">
+            <i class="fa-brands fa-whatsapp"></i>
+        </a>
+
+        <button id="contactCloseBtn" class="close-btn">✕</button>
+    </div>
+</div>
+
+<!-- CHAT SUPPORT WIDGET (Bottom-Right Button) -->
+<div class="chat-widget" id="chatWidgetBtn">
+    <div class="online-dot"></div>
+    <img src="https://img.icons8.com/ios-filled/50/FFFFFF/chat.png" class="chat-icon">
+</div>
+
+<!-- CHAT POPUP -->
+<div class="chat-popup" id="chatPopup">
+    <div class="chat-header">
+        Support Chat
+        <button id="chatCloseBtn" class="chat-close">✕</button>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="msg bot">Hello 👋 How can we help you?</div>
+    </div>
+
+    <div class="chat-input">
+        <textarea id="chatInput" placeholder="Type a message..."></textarea>
+        <button id="chatSendBtn" class="send-btn">➤</button>
+    </div>
+</div>
+
+
+
+
+  <script src="https://unpkg.com/scrollreveal"></script>
+  <script src="main.js"></script>
+  <script>
+
+ const form = document.getElementById("contactForm");
+const popupOverlay = document.getElementById("popupOverlay");
+const popupBox = document.getElementById("popupBox");
+const popupOkBtn = document.getElementById("popupOkBtn");
+const sendBtn = document.getElementById("sendBtn");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  sendBtn.innerText = "Sending...";
+  sendBtn.disabled = true;
+
+  const formData = new FormData(form);
+
+  await fetch("https://formspree.io/f/mjkdpzgp", {
+    method: "POST",
+    body: formData,
+    headers: { "Accept": "application/json" }
+  });
+
+  // Show Popup
+  popupOverlay.style.display = "block";
+  popupBox.style.display = "block";
+  setTimeout(() => popupBox.classList.add("show"), 10);
+
+  // Reset form
+  form.reset();
+  sendBtn.innerText = "Submit Message";
+  sendBtn.disabled = false;
+});
+
+// Close Popup
+popupOkBtn.addEventListener("click", () => {
+  popupOverlay.style.display = "none";
+  popupBox.style.display = "none";
+  popupBox.classList.remove("show");
+});
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyMove Logistics Dashboard</title>
+<style>
+  /* Global */
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background:#f8f9fa; color:#1f2937; }
+  h1, h2, h3 { margin:0; }
+  button { cursor:pointer; border:none; border-radius:5px; transition:0.2s; }
+  button:hover { opacity:0.9; }
+  input, select, textarea { width:100%; padding:8px 10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; font-size:0.95em; }
+
+  /* Header */
+  header { background:#1e40af; color:#fff; display:flex; justify-content:space-between; align-items:center; padding:15px 20px; flex-wrap:wrap; }
+  header h1 { font-size:1.6em; }
+  header .auth-controls { display:flex; align-items:center; gap:10px; }
+  header .auth-controls span { font-weight:500; }
+  header .auth-controls button { padding:6px 12px; font-weight:500; }
+
+  /* Sections */
+  #addSection, #loginSection { background:#fff; border-radius:8px; padding:20px; margin:20px auto; max-width:600px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+  #addSection h3, #loginSection h3 { margin-bottom:10px; color:#1e40af; }
+
+  /* Buttons */
+  .primary { background:#1e40af; color:#fff; padding:8px 14px; font-weight:600; }
+  .ghost { background:#f1f5f9; color:#1f2937; padding:8px 14px; }
+  .primary, .ghost { margin:3px; }
+
+  /* Table */
+  .table-wrapper { overflow-x:auto; margin:20px; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius:8px; background:#fff; }
+  table { width:100%; border-collapse:collapse; min-width:800px; }
+  th, td { padding:12px 10px; text-align:left; border-bottom:1px solid #e5e7eb; }
+  th { background:#1e40af; color:#fff; position:sticky; top:0; }
+  .actions button { margin-right:5px; padding:5px 10px; font-size:0.85em; }
+
+  /* Stats */
+  .stats { margin:0 20px; font-weight:600; font-size:0.95em; }
+
+  /* Modal */
+  #modalBackdrop { position:fixed; top:0; left:0; width:100%; height:100%; display:none; justify-content:center; align-items:flex-start; background:rgba(0,0,0,0.5); padding:20px; overflow:auto; z-index:1000; }
+  #editForm { background:#fff; padding:20px; border-radius:8px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 5px 15px rgba(0,0,0,0.2); }
+  #editForm h3 { color:#1e40af; margin-bottom:10px; }
+  #editForm button { margin-top:10px; }
+
+  /* Toast */
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e40af; color:#fff; padding:10px 20px; border-radius:6px; display:none; font-weight:500; z-index:9999; box-shadow:0 2px 6px rgba(0,0,0,0.3); }
+
+  /* Search */
+  #searchInput { padding:8px; margin:10px 20px; border-radius:6px; border:1px solid #ccc; width:220px; }
+
+  /* Responsive */
+  @media(max-width:768px){
+    header h1 { font-size:1.2em; margin-bottom:5px; }
+    .actions button { font-size:0.75em; padding:4px 8px; }
+    input, textarea { font-size:0.9em; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>EasyMove Logistics</h1>
+  <div class="auth-controls">
+    <span id="userEmail"></span>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
+</header>
+
+<div id="loginSection">
+  <h3>Admin Login</h3>
+  <form id="loginForm">
+    <input type="email" id="loginEmail" placeholder="Admin Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button type="submit" class="primary">Login</button>
+  </form>
+</div>
+
+<section id="addSection" style="display:none;">
+  <form id="addForm">
+    <h3>Add Shipment</h3>
+    <input id="senderName" placeholder="Sender Name" required>
+    <input id="senderEmail" placeholder="Sender Email">
+    <input id="senderPhone" placeholder="Sender Phone">
+    <input id="senderAddress" placeholder="Sender Address">
+
+    <input id="receiverName" placeholder="Receiver Name" required>
+    <input id="receiverPhone" placeholder="Receiver Phone">
+    <input id="receiverAddress" placeholder="Receiver Address">
+
+    <input id="originPort" placeholder="Origin Port" required>
+    <input id="destinationAddress" placeholder="Destination Address">
+
+    <input id="courierFee" placeholder="Courier Fee">
+    <input id="shipmentMode" placeholder="Shipment Mode">
+    <input id="packageType" placeholder="Package Type">
+    <input id="weight" placeholder="Weight">
+    <input id="pickupDate" type="date">
+    <input id="estimatedDelivery" type="date">
+
+    <!-- STATUS DROPDOWN (FIXED) -->
+    <select id="courierStatus" required>
+      <option value="">Select Status</option>
+      <option value="Pending Pickup">Pending Pickup</option>
+      <option value="Picked Up">Picked Up</option>
+      <option value="In Transit">In Transit</option>
+      <option value="Out For Delivery">Out For Delivery</option>
+      <option value="Delivered">Delivered</option>
+    </select>
+
+    <textarea id="details" placeholder="Details"></textarea>
+
+    <button type="submit" class="primary">Add Shipment</button>
+    <button type="button" id="cancelAdd" class="ghost">Cancel</button>
+  </form>
+</section>
+
+<div style="margin:20px;">
+  <button id="openAdd" class="primary">Add Shipment</button>
+  <button id="quickAdd" class="primary">Quick Add</button>
+</div>
+
+<div class="stats">
+  Total: <span id="statTotal">—</span> |
+  In Transit: <span id="statTransit">—</span> |
+  Delivered: <span id="statDelivered">—</span>
+</div>
+
+<input id="searchInput" placeholder="Search">
+<button id="refreshBtn" class="primary">Refresh</button>
+<button id="exportBtn" class="primary">Export CSV</button>
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>Tracking</th>
+        <th>Sender</th>
+        <th>Receiver</th>
+        <th>Route</th>
+        <th>Status</th>
+        <th>Pickup Date</th>
+        <th>Fee</th>
+        <th>Package Type</th>
+        <th>Weight</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="shipmentTable"></tbody>
+  </table>
+</div>
+
+<div id="modalBackdrop">
+  <form id="editForm">
+    <h3>Edit Shipment <span id="modalSub"></span></h3>
+    <input id="e_senderName" placeholder="Sender Name">
+    <input id="e_receiverName" placeholder="Receiver Name">
+    <input id="e_originPort" placeholder="Origin Port">
+    <input id="e_destinationAddress" placeholder="Destination Address">
+    <input id="e_status" placeholder="Status">
+    <input id="e_tracking" placeholder="Tracking Number" disabled>
+    <textarea id="e_details" placeholder="Details"></textarea>
+    <div style="margin-top:10px;">
+      <button type="submit" class="primary">Save</button>
+      <button type="button" id="deleteBtn" class="ghost">Delete</button>
+      <button type="button" id="closeModal" class="ghost">Close</button>
+    </div>
+  </form>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot, getDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCW-RCwz_nyR4r_5crONpHsXOwuX16Wfdo",
+  authDomain: "eaymovelogistics.firebaseapp.com",
+  projectId: "eaymovelogistics",
+  storageBucket: "eaymovelogistics.firebasestorage.app",
+  messagingSenderId: "145343790752",
+  appId: "1:145343790752:web:77283c9eeeaba3e07253c5",
+  measurementId: "G-5BJLXNJETV"
+};
+
+const app = initializeApp(firebaseConfig);
+try { getAnalytics(app); } catch(e){}
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const loginForm = document.getElementById('loginForm');
+const loginSection = document.getElementById('loginSection');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const logoutBtn = document.getElementById('logoutBtn');
+const userEmail = document.getElementById('userEmail');
+
+const addSection = document.getElementById('addSection');
+const openAdd = document.getElementById('openAdd');
+const cancelAdd = document.getElementById('cancelAdd');
+const addForm = document.getElementById('addForm');
+
+const shipmentTable = document.getElementById('shipmentTable');
+const statTotal = document.getElementById('statTotal');
+const statTransit = document.getElementById('statTransit');
+const statDelivered = document.getElementById('statDelivered');
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const closeModal = document.getElementById('closeModal');
+const editForm = document.getElementById('editForm');
+const e_senderName = document.getElementById('e_senderName');
+const e_receiverName = document.getElementById('e_receiverName');
+const e_originPort = document.getElementById('e_originPort');
+const e_destinationAddress = document.getElementById('e_destinationAddress');
+const e_status = document.getElementById('e_status');
+const e_tracking = document.getElementById('e_tracking');
+const e_details = document.getElementById('e_details');
+const deleteBtn = document.getElementById('deleteBtn');
+
+const searchInput = document.getElementById('searchInput');
+const refreshBtn = document.getElementById('refreshBtn');
+const toast = document.getElementById('toast');
+
+let currentEditId = null;
+let unsubscribe = null;
+let allDocs = [];
+
+function showToast(msg, time=3000){
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(()=> toast.style.display='none', time);
+}
+
+// LOGIN
+loginForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  try{
+    await signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value);
+    loginForm.reset();
+  }catch(err){
+    showToast(err.message||"Login failed",4000);
+  }
+});
+
+logoutBtn.addEventListener('click', async ()=>{
+  await signOut(auth);
+  showToast("Signed out");
+});
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    userEmail.textContent = user.email;
+    loginSection.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    startRealtime();
+  }else{
+    userEmail.textContent = '';
+    loginSection.style.display = 'block';
+    logoutBtn.style.display = 'none';
+    stopRealtime();
+    shipmentTable.innerHTML='';
+    statTotal.textContent='—';
+    statTransit.textContent='—';
+    statDelivered.textContent='—';
+  }
+});
+
+// REALTIME DATA
+function startRealtime(){
+  const q = query(collection(db,'shipment'), orderBy('createdAt','desc'));
+  if(unsubscribe) unsubscribe();
+  unsubscribe = onSnapshot(q, snap=>{
+    allDocs=[];
+    shipmentTable.innerHTML='';
+    let total=0, transit=0, delivered=0;
+    snap.forEach(docSnap=>{
+      const d={id:docSnap.id, ...docSnap.data()};
+      allDocs.push(d);
+      total++;
+      if(d.courierStatus==='In Transit') transit++;
+      if(d.courierStatus==='Delivered') delivered++;
+      shipmentTable.insertAdjacentHTML('beforeend', rowFor(d));
+    });
+    statTotal.textContent=total;
+    statTransit.textContent=transit;
+    statDelivered.textContent=delivered;
+    attachRowHandlers();
+  }, err=> showToast("Failed to load shipments"));
+}
+function stopRealtime(){ if(unsubscribe){ unsubscribe(); unsubscribe=null; } }
+
+function rowFor(d){
+  return `<tr data-id="${d.id}">
+    <td style="font-weight:700">${d.trackingNumber||''}</td>
+    <td>${escapeHtml(d.senderName||'')}</td>
+    <td>${escapeHtml(d.receiverName||'')}</td>
+    <td>${escapeHtml(d.originPort||'')} → ${escapeHtml(d.destinationAddress||'')}</td>
+    <td>${escapeHtml(d.courierStatus||'')}</td>
+    <td>${escapeHtml(d.pickupDate||'')}</td>
+    <td>${escapeHtml(d.courierFee||'')}</td>
+    <td>${escapeHtml(d.packageType||'')}</td>
+    <td>${escapeHtml(d.weight||'')}</td>
+    <td>
+      <div class="actions">
+        <button class="btn ghost viewBtn" data-id="${d.id}">View</button>
+        <button class="btn primary editBtn" data-id="${d.id}">Edit</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function escapeHtml(s){ return s? String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) : ''; }
+
+function attachRowHandlers(){
+  shipmentTable.querySelectorAll('.viewBtn').forEach(b=>{ b.onclick=()=> openEditModal(b.dataset.id,{readOnly:true}); });
+  shipmentTable.querySelectorAll('.editBtn').forEach(b=>{ b.onclick=()=> openEditModal(b.dataset.id); });
+}
+
+// MODAL
+async function openEditModal(id,opts={}) {
+  currentEditId=id;
+  try{
+    const snap=await getDoc(doc(db,'shipment',id));
+    if(!snap.exists()){ showToast("Shipment not found"); return; }
+    const d=snap.data();
+    e_senderName.value=d.senderName||'';
+    e_receiverName.value=d.receiverName||'';
+    e_originPort.value=d.originPort||'';
+    e_destinationAddress.value=d.destinationAddress||'';
+    e_status.value=d.courierStatus||'';
+    e_tracking.value=d.trackingNumber||'';
+    e_details.value=d.details||'';
+    modalBackdrop.style.display='flex';
+    document.getElementById('modalSub').textContent=`#${id}`;
+    Array.from(editForm.elements).forEach(el=> el.disabled = !!opts.readOnly);
+    deleteBtn.style.display = opts.readOnly ? 'none' : 'inline-block';
+  }catch(err){ showToast("Failed to open shipment"); }
+}
+
+// CLOSE MODAL
+closeModal.addEventListener('click', ()=> modalBackdrop.style.display='none');
+modalBackdrop.addEventListener('click', ev=> { if(ev.target===modalBackdrop) modalBackdrop.style.display='none'; });
+
+// EDIT
+editForm.addEventListener('submit', async ev=>{
+  ev.preventDefault();
+  if(!currentEditId) return;
+  const updated={
+  senderName:e_senderName.value,
+  receiverName:e_receiverName.value,
+  originPort:e_originPort.value,
+  destinationAddress:e_destinationAddress.value,
+  courierStatus:e_status.value,
+  details:e_details.value,
+  trackingNumber: e_tracking.value,
+  trackingNumberLower: e_tracking.value.toLowerCase(),   // ADD THIS
+  updatedAt: serverTimestamp()
+};
+
+  try{
+    const docRef=doc(db,'shipment',currentEditId);
+    await updateDoc(docRef, updated);
+
+    const histRef=collection(docRef,'history');
+    await addDoc(histRef,{...updated, timestamp: serverTimestamp()});  // 👈 FIXED TIMESTAMP
+
+    showToast('Shipment updated');
+    modalBackdrop.style.display='none';
+  }catch(err){ showToast('Update failed'); }
+});
+
+
+// DELETE
+deleteBtn.addEventListener('click', async ()=>{
+  if(!currentEditId) return;
+  try{ 
+    await deleteDoc(doc(db,'shipment',currentEditId));
+    showToast('Shipment deleted successfully');
+    modalBackdrop.style.display='none';
+  } catch(err){ showToast('Delete failed'); }
+});
+
+// ADD SECTION TOGGLE
+openAdd.addEventListener('click', ()=> addSection.style.display= addSection.style.display==='none'? 'block':'none');
+cancelAdd.addEventListener('click', ()=> addSection.style.display='none');
+
+// TRACKING NUMBER UNIQUE
+async function generateTracking() {
+  let trk;
+  let exists = true;
+  while (exists) {
+    trk = 'TRK-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+    const q = query(collection(db, 'shipment'), where('trackingNumber', '==', trk));
+    const snap = await getDocs(q);
+    exists = !snap.empty;
+  }
+  return trk;
+}
+
+// ADD SHIPMENT
+addForm.addEventListener('submit', async ev=>{
+  ev.preventDefault();
+  const senderName=document.getElementById('senderName').value.trim();
+  const receiverName=document.getElementById('receiverName').value.trim();
+  const originPort=document.getElementById('originPort').value.trim();
+  const courierStatus=document.getElementById('courierStatus').value.trim();
+  if(!senderName||!receiverName||!originPort||!courierStatus){ showToast('Please fill required fields'); return; }
+  try{
+    const trk = await generateTracking();
+    const data={
+      senderName,
+      senderEmail: document.getElementById('senderEmail').value.trim(),
+      senderPhone: document.getElementById('senderPhone').value.trim(),
+      senderAddress: document.getElementById('senderAddress').value.trim(),
+      receiverName,
+      receiverPhone: document.getElementById('receiverPhone').value.trim(),
+      receiverAddress: document.getElementById('receiverAddress').value.trim(),
+      originPort,
+      destinationAddress: document.getElementById('destinationAddress').value.trim(),
+      courierFee: document.getElementById('courierFee').value.trim(),
+      shipmentMode: document.getElementById('shipmentMode').value.trim(),
+      packageType: document.getElementById('packageType').value.trim(),
+      weight: document.getElementById('weight').value.trim(),
+      details: document.getElementById('details').value.trim(),
+      pickupDate: document.getElementById('pickupDate').value,
+      estimatedDelivery: document.getElementById('estimatedDelivery').value,
+      courierStatus,
+      trackingNumber: trk,
+      trackingNumberLower: trk.toLowerCase(),
+      createdAt: serverTimestamp()
+    };
+    await addDoc(collection(db,'shipment'),data);
+    showToast('Shipment added successfully');
+    addForm.reset();
+    addSection.style.display='none';
+  } catch(err){
+    showToast('Add failed: '+err.message);
+  }
+});
+
+// SEARCH & REFRESH
+searchInput.addEventListener('input', filterTable);
+refreshBtn.addEventListener('click', startRealtime);
+function filterTable(){
+  const q=searchInput.value.trim().toLowerCase();
+  shipmentTable.innerHTML='';
+  const filtered=allDocs.filter(d=>{
+    if(!q) return true;
+    return (d.trackingNumber&&d.trackingNumber.toLowerCase().includes(q))||
+           (d.senderName&&d.senderName.toLowerCase().includes(q))||
+           (d.receiverName&&d.receiverName.toLowerCase().includes(q))||
+           (d.originPort&&d.originPort.toLowerCase().includes(q));
+  });
+  filtered.forEach(d=> shipmentTable.insertAdjacentHTML('beforeend', rowFor(d)));
+  attachRowHandlers();
+}
+
+// EXPORT CSV
+document.getElementById('exportBtn').addEventListener('click', async ()=>{
+  if(allDocs.length===0){ showToast('No shipments to export'); return; }
+  const keys=['trackingNumber','senderName','senderEmail','receiverName','originPort','destinationAddress','courierStatus','pickupDate','estimatedDelivery','courierFee'];
+  const rows=[keys.join(',')];
+  allDocs.forEach(d=> rows.push(keys.map(k=>`"${(d[k]||'').toString().replace(/"/g,'""')}"`).join(',')));
+  const csv=rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='shipments.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+// QUICK ADD
+document.getElementById('quickAdd').addEventListener('click', ()=> { addSection.style.display='block'; window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); });
+</script>
+
+</body>
+</html>
