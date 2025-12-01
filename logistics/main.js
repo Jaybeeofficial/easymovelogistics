@@ -32,86 +32,86 @@ closeBtn.addEventListener("click", () => {
 });
 
 
-const chatWidgetBtn = document.getElementById("chatWidgetBtn");
-const chatPopup = document.getElementById("chatPopup");
-const chatCloseBtn = document.getElementById("chatCloseBtn");
+// const chatWidgetBtn = document.getElementById("chatWidgetBtn");
+// const chatPopup = document.getElementById("chatPopup");
+// const chatCloseBtn = document.getElementById("chatCloseBtn");
 
-chatWidgetBtn.addEventListener("click", () => {
-    chatPopup.classList.add("open");
-});
+// chatWidgetBtn.addEventListener("click", () => {
+//     chatPopup.classList.add("open");
+// });
 
-chatCloseBtn.addEventListener("click", () => {
-    chatPopup.classList.remove("open");
-});
+// chatCloseBtn.addEventListener("click", () => {
+//     chatPopup.classList.remove("open");
+// });
 
 
-const chatMessages = document.getElementById("chatMessages");
-const chatInput = document.getElementById("chatInput");
-const chatSendBtn = document.getElementById("chatSendBtn");
+// const chatMessages = document.getElementById("chatMessages");
+// const chatInput = document.getElementById("chatInput");
+// const chatSendBtn = document.getElementById("chatSendBtn");
 
-// 📌 BOT RESPONSES (you can edit)
-function botReply(message) {
-    message = message.toLowerCase();
 
-    if(message.includes("hello") || message.includes("hi")) {
-        return "Hello! How can we assist you today? 😊";
-    }
-    if(message.includes("track") || message.includes("tracking")) {
-        return "To track your package, go to the Tracking page and enter your tracking number 📦.";
-    }
-    if(message.includes("price") || message.includes("quote") || message.includes("cost")) {
-        return "For shipment pricing, please visit our 'Get a Quote' page.";
-    }
-    if(message.includes("contact") || message.includes("phone") || message.includes("number")) {
-        return "You can reach our support team via the Contact page 📞.";
-    }
+// function botReply(message) {
+//     message = message.toLowerCase();
 
-    return "I'm here to help! 😊 Can you please provide more details?";
-}
+//     if(message.includes("hello") || message.includes("hi")) {
+//         return "Hello! How can we assist you today? 😊";
+//     }
+//     if(message.includes("track") || message.includes("tracking")) {
+//         return "To track your package, go to the Tracking page and enter your tracking number 📦.";
+//     }
+//     if(message.includes("price") || message.includes("quote") || message.includes("cost")) {
+//         return "For shipment pricing, please visit our 'Get a Quote' page.";
+//     }
+//     if(message.includes("contact") || message.includes("phone") || message.includes("number")) {
+//         return "You can reach our support team via the Contact page 📞.";
+//     }
 
-// 📌 ADD MESSAGE TO CHAT
-function addMessage(text, sender = "user") {
-    const messageEl = document.createElement("div");
-    messageEl.classList.add("msg", sender);
-    messageEl.textContent = text;
-    chatMessages.appendChild(messageEl);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+//     return "I'm here to help! 😊 Can you please provide more details?";
+// }
 
-// 📌 BOT TYPING EFFECT
-function botTypingEffect(replyText) {
-    const typing = document.createElement("div");
-    typing.classList.add("msg", "bot");
-    typing.textContent = "Typing...";
-    chatMessages.appendChild(typing);
 
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+// function addMessage(text, sender = "user") {
+//     const messageEl = document.createElement("div");
+//     messageEl.classList.add("msg", sender);
+//     messageEl.textContent = text;
+//     chatMessages.appendChild(messageEl);
+//     chatMessages.scrollTop = chatMessages.scrollHeight;
+// }
 
-    setTimeout(() => {
-        typing.remove();
-        addMessage(replyText, "bot");
-    }, 1300);
-}
 
-// 📌 SEND MESSAGE FUNCTION
-function sendMessage() {
-    const userMessage = chatInput.value.trim();
-    if (!userMessage) return;
+// function botTypingEffect(replyText) {
+//     const typing = document.createElement("div");
+//     typing.classList.add("msg", "bot");
+//     typing.textContent = "Typing...";
+//     chatMessages.appendChild(typing);
 
-    addMessage(userMessage, "user");
-    chatInput.value = "";
+//     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    const replyText = botReply(userMessage);
-    botTypingEffect(replyText);
-}
+//     setTimeout(() => {
+//         typing.remove();
+//         addMessage(replyText, "bot");
+//     }, 1300);
+// }
 
-chatSendBtn.addEventListener("click", sendMessage);
-chatInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        sendMessage();
-    }
-});
+
+// function sendMessage() {
+//     const userMessage = chatInput.value.trim();
+//     if (!userMessage) return;
+
+//     addMessage(userMessage, "user");
+//     chatInput.value = "";
+
+//     const replyText = botReply(userMessage);
+//     botTypingEffect(replyText);
+// }
+
+// chatSendBtn.addEventListener("click", sendMessage);
+// chatInput.addEventListener("keypress", (e) => {
+//     if (e.key === "Enter") {
+//         e.preventDefault();
+//         sendMessage();
+//     }
+// });
 
 
 

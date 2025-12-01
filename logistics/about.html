@@ -225,29 +225,231 @@
     </div>
 </div>
 
-<!-- CHAT SUPPORT WIDGET (Bottom-Right Button) -->
+<!-- CHAT WIDGET BUTTON -->
 <div class="chat-widget" id="chatWidgetBtn">
-    <div class="online-dot"></div>
-    <img src="https://img.icons8.com/ios-filled/50/FFFFFF/chat.png" class="chat-icon">
+    <img src="https://img.icons8.com/ios-filled/50/FFFFFF/chat.png" style="width:30px;">
 </div>
 
-<!-- CHAT POPUP -->
+<!-- CHAT BOX -->
 <div class="chat-popup" id="chatPopup">
     <div class="chat-header">
         Support Chat
-        <button id="chatCloseBtn" class="chat-close">✕</button>
+        <button id="chatCloseBtn">✕</button>
     </div>
 
-    <div class="chat-messages" id="chatMessages">
-        <div class="msg bot">Hello 👋 How can we help you?</div>
-    </div>
+    <div class="chat-messages" id="chatMessages"></div>
 
     <div class="chat-input">
         <textarea id="chatInput" placeholder="Type a message..."></textarea>
-        <button id="chatSendBtn" class="send-btn">➤</button>
+        <button id="chatSendBtn">➤</button>
     </div>
 </div>
 
+<style>
+/* Chat Button */
+.chat-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1E88E5;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+/* Chat Popup */
+.chat-popup {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    height: 400px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+/* Make it APPEAR when opened */
+.chat-popup.open {
+    display: flex;
+}
+
+/* Chat Header */
+.chat-header {
+    background: #1E88E5;
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+#chatCloseBtn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+
+
+/* Message Bubbles */
+.msg {
+    padding: 6px 10px;
+    margin: 6px 0;
+    border-radius: 8px;
+    max-width: 80%;
+    
+}
+
+
+/* User Message (Right side) */
+.msg.user {
+    background: #007bff;
+    color: white;
+    align-self: flex-end;
+    padding: 8px 12px;
+    margin: 6px;
+    border-radius: 12px 12px 0 12px;
+    max-width: 75%;
+}
+
+/* Admin Message (Left side) */
+.msg.bot {
+    background: #f1f1f1;
+    color: #333;
+    align-self: flex-start;
+    padding: 8px 12px;
+    margin: 6px;
+    border-radius: 12px 12px 12px 0;
+    max-width: 75%;
+}
+
+/* Chat Message Container */
+#chatMessages {
+    display: flex;
+    flex-direction: column;
+    flex: 1;                /* Takes all free space */
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Input Area */
+.chat-input {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+.chat-input textarea {
+    flex: 1;
+    resize: none;
+    height: 40px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 6px;
+}
+.chat-input button {
+    width: 40px;
+    border: none;
+    background: #1E88E5;
+    color: white;
+    margin-left: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+</style>
+
+
+<script type="module">
+/* ================= FIREBASE =================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, serverTimestamp, 
+  onSnapshot, query, orderBy, setDoc, doc 
+} from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCW-RCwz_nyR4r_5crONpHsXOwuX16Wfdo",
+  authDomain: "eaymovelogistics.firebaseapp.com",
+  projectId: "eaymovelogistics",
+  storageBucket: "eaymovelogistics.appspot.com",
+  messagingSenderId: "145343790752",
+  appId: "1:145343790752:web:77283c9eeeaba3e07253c5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ================= CHAT SESSION (PERSIST) =================== */
+let chatId = localStorage.getItem("chatId");
+if (!chatId) {
+  chatId = "user_" + Date.now();
+  localStorage.setItem("chatId", chatId);
+}
+
+/* ================= UI ELEMENTS =================== */
+const chatWidgetBtn = document.getElementById("chatWidgetBtn");
+const chatPopup = document.getElementById("chatPopup");
+const chatCloseBtn = document.getElementById("chatCloseBtn");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const chatSendBtn = document.getElementById("chatSendBtn");
+
+/* ================= OPEN/CLOSE CHAT =================== */
+chatWidgetBtn.onclick = () => chatPopup.classList.add("open");
+chatCloseBtn.onclick = () => chatPopup.classList.remove("open");
+
+/* ================= SEND MESSAGE =================== */
+async function sendMessage(){
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = "";
+
+  // Ensure chat doc exists BEFORE adding messages
+  await setDoc(doc(db, "chats", chatId), { created: serverTimestamp() }, { merge: true });
+
+  await addDoc(collection(db, "chats", chatId, "messages"), {
+      text,
+      from: "user",
+      timestamp: serverTimestamp()
+  });
+}
+
+chatSendBtn.onclick = sendMessage;
+chatInput.addEventListener("keypress", e => {
+  if (e.key === "Enter"){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+/* ================= LISTEN FOR MESSAGES LIVE =================== */
+const msgRef = collection(db, "chats", chatId, "messages");
+const q = query(msgRef, orderBy("timestamp", "asc"));
+
+onSnapshot(q, snap => {
+  chatMessages.innerHTML = "";
+  snap.forEach(doc => {
+    const m = doc.data();
+    const div = document.createElement("div");
+    div.className = "msg " + (m.from === "admin" ? "bot" : "user");
+    div.textContent = m.text;
+    chatMessages.appendChild(div);
+  });
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+</script>
 
 
 

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support Chat Dashboard - EasyMove Logistics</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif;}
+body{background:#f6f9fc;color:#111;overflow-x:hidden;}
+header{background:#1e3a8a;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+header h1{font-size:18px;font-weight:700;}
+.auth-controls{display:flex;gap:10px;align-items:center;}
+main{padding:20px;}
+
+#loginSection{text-align:center;margin-top:50px;}
+#loginSection h3{margin-bottom:15px;}
+#loginForm input{width:260px;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #cbd5e1;}
+button.primary{background:#1e3a8a;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;}
+button.primary:hover{opacity:0.85;}
+
+#adminChatBtn{position:fixed;bottom:20px;right:20px;background:#1e3a8a;color:#fff;padding:12px 18px;border-radius:50px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;z-index:90;}
+#adminChatBtn .notif-dot{width:10px;height:10px;background:red;border-radius:50%;display:none;}
+#adminChatBtn:hover{opacity:0.85;}
+
+.admin-chat-popup{position:fixed;bottom:70px;right:20px;width:350px;height:480px;background:#fff;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.15);display:none;flex-direction:column;z-index:99;}
+.admin-chat-popup.open{display:flex;}
+
+.admin-chat-header{background:#1e3a8a;color:#fff;padding:10px 15px;display:flex;justify-content:space-between;align-items:center;border-radius:10px 10px 0 0;}
+.admin-chat-body{display:flex;height:100%;}
+
+.chat-users{width:35%;border-right:1px solid #ddd;display:flex;flex-direction:column;}
+.chat-users #adminUserList{overflow-y:auto;height:100%;}
+.chat-user{padding:10px;font-size:13px;border-bottom:1px solid #eee;cursor:pointer;}
+.chat-user:hover, .chat-user.active{background:#e0ebff;}
+
+.chat-window{width:65%;display:flex;flex-direction:column;}
+.messages-area{flex:1;padding:10px;overflow-y:auto;background:#fafafa;}
+.msg{padding:8px 10px;margin:6px;border-radius:6px;font-size:14px;}
+.msg.admin{background:#dbeafe;align-self:flex-end;}
+.msg.user{background:#e2e8f0;}
+
+.chat-input-row{display:flex;border-top:1px solid #ddd;}
+#adminReplyInput{flex:1;padding:8px;border:none;border-right:1px solid #ddd;font-size:13px;}
+#adminSendBtn{padding:8px 12px;border:none;background:#1e3a8a;color:#fff;cursor:pointer;}
+
+@media(max-width:480px){
+  .admin-chat-popup{width:90%;right:5%;height:75%;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>EasyMove Logistics</h1>
+  <div class="auth-controls">
+    <span id="userEmail" style="font-size:0; position:relative; cursor:pointer;">
+  <span style="font-size:16px;">👤</span>
+</span>
+
+    <button id="logoutBtn" style="display:none;" class="primary">Logout</button>
+  </div>
+</header>
+
+<main>
+  
+  <div id="loginSection">
+    <h3>Admin Login</h3>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Admin Email" required><br>
+      <input type="password" id="loginPassword" placeholder="Password" required><br>
+      <button type="submit" class="primary">Login</button>
+    </form>
+  </div>
+</main>
+
+
+<div id="adminChatBtn" title="Customer Support Chat" style="display:none;">
+  <div class="notif-dot" id="notifDot"></div>
+  <span>Customer Support</span>
+</div>
+
+
+<div id="adminChatPopup" class="admin-chat-popup">
+  <div class="admin-chat-header">
+    <strong>Support Chat</strong>
+    <button id="closeAdminChat" class="primary" style="padding:5px 10px;">Close</button>
+  </div>
+
+  <div class="admin-chat-body">
+    <div class="chat-users">
+      <div id="adminUserList"></div>
+    </div>
+    <div class="chat-window">
+      <div class="messages-area" id="adminMessages"></div>
+      <div class="chat-input-row">
+        <textarea id="adminReplyInput" placeholder="Type reply..."></textarea>
+        <button id="adminSendBtn" class="primary">Send</button>
+      </div>
+    </div>
+  </div>
+</div> 
+
+
+
+
+
+
+
+<!-- <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+
+const app = initializeApp({
+  apiKey: "AIzaSyCW-RCwz_nyR4r_5crONpHsXOwuX16Wfdo",
+  authDomain: "eaymovelogistics.firebaseapp.com",
+  projectId: "eaymovelogistics",
+  storageBucket: "eaymovelogistics.appspot.com",
+  messagingSenderId: "145343790752",
+  appId: "1:145343790752:web:77283c9eeeaba3e07253c5"
+});
+
+const db = getFirestore(app);
+const auth = getAuth();
+
+
+const loginSection = document.getElementById("loginSection");
+const loginForm = document.getElementById("loginForm");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const logoutBtn = document.getElementById("logoutBtn");
+const userEmail = document.getElementById("userEmail");
+
+const adminChatBtn = document.getElementById("adminChatBtn");
+const adminChatPopup = document.getElementById("adminChatPopup");
+const closeAdminChat = document.getElementById("closeAdminChat");
+const adminUserList = document.getElementById("adminUserList");
+const adminMessages = document.getElementById("adminMessages");
+const adminReplyInput = document.getElementById("adminReplyInput");
+const adminSendBtn = document.getElementById("adminSendBtn");
+
+let currentChatId = null;
+let usersUnsub = null;
+let msgUnsub = null;
+let usersCache = [];
+
+
+loginForm.addEventListener("submit", e => {
+  e.preventDefault();
+  signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
+    .catch(() => alert("Invalid Login"));
+});
+
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginSection.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+    adminChatBtn.style.display = "flex";
+    userEmail.textContent = user.email;
+    startUsersListener();
+  } else {
+    loginSection.style.display = "block";
+    logoutBtn.style.display = "none";
+    adminChatBtn.style.display = "none";
+    userEmail.textContent = "";
+  }
+});
+
+
+logoutBtn.addEventListener("click", () => signOut(auth));
+
+
+adminChatBtn.onclick = () => adminChatPopup.classList.add("open");
+closeAdminChat.onclick = () => adminChatPopup.classList.remove("open");
+
+
+function startUsersListener() {
+  if (usersUnsub) usersUnsub();
+
+  const chatsRef = collection(db, "chats");
+
+  usersUnsub = onSnapshot(chatsRef, snap => {
+    usersCache = [];
+    snap.forEach(docSnap => {
+      const chatId = docSnap.id;
+      const lastMsgQuery = query(collection(db, "chats", chatId, "messages"), orderBy("timestamp","desc"), limit(1));
+      
+      onSnapshot(lastMsgQuery, lastSnap => {
+        let lastMsg = null;
+        if (!lastSnap.empty) lastMsg = lastSnap.docs[0].data();
+        const existing = usersCache.find(u => u.id === chatId);
+        if (existing) existing.lastMsg = lastMsg;
+        else usersCache.push({ id: chatId, lastMsg });
+        renderUserList();
+      });
+    });
+  });
+}
+
+function renderUserList() {
+  adminUserList.innerHTML = "";
+  usersCache.forEach(u => {
+    const el = document.createElement("div");
+    el.className = "chat-user" + (currentChatId === u.id ? " active" : "");
+    el.textContent = u.id;
+    el.onclick = () => openChat(u.id);
+    adminUserList.appendChild(el);
+  });
+}
+
+
+async function openChat(id) {
+  currentChatId = id;
+  adminMessages.innerHTML = "";
+
+  
+  const chatDoc = doc(db, "chats", id);
+  await setDoc(chatDoc, { created: serverTimestamp() }, { merge: true });
+
+  if (msgUnsub) msgUnsub();
+
+  const chatsRef = collection(db, "chats", id, "messages");
+  const q = query(chatsRef, orderBy("timestamp","asc"));
+
+  msgUnsub = onSnapshot(q, snap => {
+    adminMessages.innerHTML = "";
+
+    if (snap.empty){
+        const greet = document.createElement("div");
+        greet.className = "msg user";
+        greet.textContent = "User has not started chatting yet...";
+        adminMessages.appendChild(greet);
+        return;
+    }
+
+    snap.forEach(doc => {
+      const m = doc.data();
+      const el = document.createElement("div");
+
+      
+      if (m.from === "admin") el.className = "msg admin";
+      else el.className = "msg user";
+
+      el.textContent = m.text;
+      adminMessages.appendChild(el);
+    });
+
+    adminMessages.scrollTop = adminMessages.scrollHeight;
+});
+
+
+  renderUserList();
+}
+
+
+adminSendBtn.onclick = async () => {
+  if (!currentChatId) return;
+  const text = adminReplyInput.value.trim();
+  if (!text) return;
+  adminReplyInput.value = "";
+
+  
+  const chatDoc = doc(db, "chats", currentChatId);
+  await setDoc(chatDoc, { created: serverTimestamp() }, { merge: true });
+
+  await addDoc(collection(db, "chats", currentChatId, "messages"), {
+    text, from:"admin", timestamp:serverTimestamp()
+  });
+};
+</script> -->
+
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+// ================= FIREBASE CONFIG ================== //
+const app = initializeApp({
+  apiKey: "AIzaSyCW-RCwz_nyR4r_5crONpHsXOwuX16Wfdo",
+  authDomain: "eaymovelogistics.firebaseapp.com",
+  projectId: "eaymovelogistics",
+  storageBucket: "eaymovelogistics.appspot.com",
+  messagingSenderId: "145343790752",
+  appId: "1:145343790752:web:77283c9eeeaba3e07253c5"
+});
+
+const db = getFirestore(app);
+const auth = getAuth();
+
+// ================= UI ELEMENTS ================== //
+const loginSection = document.getElementById("loginSection");
+const loginForm = document.getElementById("loginForm");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const logoutBtn = document.getElementById("logoutBtn");
+const userEmail = document.getElementById("userEmail");
+
+const adminChatBtn = document.getElementById("adminChatBtn");
+const adminChatPopup = document.getElementById("adminChatPopup");
+const closeAdminChat = document.getElementById("closeAdminChat");
+const adminUserList = document.getElementById("adminUserList");
+const adminMessages = document.getElementById("adminMessages");
+const adminReplyInput = document.getElementById("adminReplyInput");
+const adminSendBtn = document.getElementById("adminSendBtn");
+
+let currentChatId = null;
+let usersUnsub = null;
+let msgUnsub = null;
+let usersCache = [];
+
+// ================= AUTH LOGIN ================== //
+loginForm.addEventListener("submit", e => {
+  e.preventDefault();
+  signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
+    .catch(() => alert("Invalid Login"));
+});
+
+// ================= AUTH STATUS ================== //
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginSection.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+    adminChatBtn.style.display = "flex";
+
+    // 🔥 UPDATED: Email hidden visually, stored as tooltip instead
+    userEmail.title = user.email;
+    userEmail.innerHTML = `<span style="font-size:16px;">👤</span>`;
+    userEmail.style.fontSize = "0";
+
+    startUsersListener();
+  } else {
+    loginSection.style.display = "block";
+    logoutBtn.style.display = "none";
+    adminChatBtn.style.display = "none";
+
+    userEmail.textContent = "";
+  }
+});
+
+// Logout
+logoutBtn.addEventListener("click", () => signOut(auth));
+
+// ================= OPEN/CLOSE DASHBOARD ================== //
+adminChatBtn.onclick = () => adminChatPopup.classList.add("open");
+closeAdminChat.onclick = () => adminChatPopup.classList.remove("open");
+
+// ================= LISTEN FOR USERS ================== //
+function startUsersListener() {
+  if (usersUnsub) usersUnsub();
+
+  const chatsRef = collection(db, "chats");
+
+  usersUnsub = onSnapshot(chatsRef, snap => {
+    usersCache = [];
+    snap.forEach(docSnap => {
+      const chatId = docSnap.id;
+      const lastMsgQuery = query(collection(db, "chats", chatId, "messages"), orderBy("timestamp","desc"), limit(1));
+      
+      onSnapshot(lastMsgQuery, lastSnap => {
+        let lastMsg = null;
+        if (!lastSnap.empty) lastMsg = lastSnap.docs[0].data();
+        const existing = usersCache.find(u => u.id === chatId);
+        if (existing) existing.lastMsg = lastMsg;
+        else usersCache.push({ id: chatId, lastMsg });
+        renderUserList();
+      });
+    });
+  });
+}
+
+function renderUserList() {
+  adminUserList.innerHTML = "";
+  usersCache.forEach(u => {
+    const el = document.createElement("div");
+    el.className = "chat-user" + (currentChatId === u.id ? " active" : "");
+    el.textContent = u.id;
+    el.onclick = () => openChat(u.id);
+    adminUserList.appendChild(el);
+  });
+}
+
+// ================= OPEN CHAT THREAD ================== //
+async function openChat(id) {
+  currentChatId = id;
+  adminMessages.innerHTML = "";
+
+  const chatDoc = doc(db, "chats", id);
+  await setDoc(chatDoc, { created: serverTimestamp() }, { merge: true });
+
+  if (msgUnsub) msgUnsub();
+
+  const chatsRef = collection(db, "chats", id, "messages");
+  const q = query(chatsRef, orderBy("timestamp","asc"));
+
+  msgUnsub = onSnapshot(q, snap => {
+    adminMessages.innerHTML = "";
+
+    if (snap.empty){
+        const greet = document.createElement("div");
+        greet.className = "msg user";
+        greet.textContent = "User has not started chatting yet...";
+        adminMessages.appendChild(greet);
+        return;
+    }
+
+    snap.forEach(doc => {
+      const m = doc.data();
+      const el = document.createElement("div");
+
+      if (m.from === "admin") el.className = "msg admin";
+      else el.className = "msg user";
+
+      el.textContent = m.text;
+      adminMessages.appendChild(el);
+    });
+
+    adminMessages.scrollTop = adminMessages.scrollHeight;
+  });
+
+  renderUserList();
+}
+
+// ================= SEND REPLY ================== //
+adminSendBtn.onclick = async () => {
+  if (!currentChatId) return;
+  const text = adminReplyInput.value.trim();
+  if (!text) return;
+  adminReplyInput.value = "";
+
+  const chatDoc = doc(db, "chats", currentChatId);
+  await setDoc(chatDoc, { created: serverTimestamp() }, { merge: true });
+
+  await addDoc(collection(db, "chats", currentChatId, "messages"), {
+    text, from:"admin", timestamp:serverTimestamp()
+  });
+};
+</script>
+
+
+</body>
+</html>
