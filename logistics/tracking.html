@@ -531,11 +531,13 @@ svg { margin:15px 0; }
 <div class="timeline-container" id="timelineSection">
   <h3 class="timeline-title">Shipment Progress</h3>
   <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+
     <div class="progress-step" data-step="1"></div>
     <div class="progress-step" data-step="2"></div>
     <div class="progress-step" data-step="3"></div>
     <div class="progress-step" data-step="4"></div>
-  </div>
+</div>
   <div class="progress-labels">
     <span>Picked Up</span>
     <span>In Transit</span>
@@ -609,14 +611,25 @@ svg { margin:15px 0; }
 
     <!-- Footer Bottom -->
     <div class="footer-container footer-bottom">
-      <div class="language-select">
+      <!-- <div class="language-select">
         <select>
           <option>English (US)</option>
           <option>English (UK)</option>
           <option>Español</option>
           <option>Français</option>
         </select>
-      </div>
+      </div> -->
+      <div class="language-select">
+  <select id="languageSwitcher">
+    <option value="en">English (US)</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+  </select>
+</div>
+
+<div class="language-select">
+  <div id="google_translate_element"></div>
+</div>
       
       <div class="footer-legal">
         Terms of Service &nbsp; | &nbsp; Privacy Policy
@@ -692,17 +705,46 @@ function statusColor(status){
 // ====================== PROGRESS TIMELINE ======================
 function updateTimeline(status){
   const steps = document.querySelectorAll(".progress-step");
-  let index = 0;
-  if(status==="Picked Up") index = 1;
-  else if(status==="In Transit") index = 2;
-  else if(status==="Out for Delivery") index = 3;
-  else if(status==="Delivered") index = 4;
+  const fill = document.getElementById("progressFill");
 
-  steps.forEach((s,i)=> {
-    setTimeout(()=>{
-      s.classList.toggle("active", i < index);
-    }, i * 150);
+  steps.forEach(step => step.classList.remove("active"));
+
+  let activeSteps = 0;
+  let fillPercent = 0;
+
+  switch(status?.trim()) {
+    case "Picked Up":
+      activeSteps = 1;
+      fillPercent = 0;
+      break;
+
+    case "In Transit":
+      activeSteps = 2;
+      fillPercent = 33;
+      break;
+
+    case "Out For Delivery":
+    case "Out for Delivery":
+      activeSteps = 3;
+      fillPercent = 66;
+      break;
+
+    case "Delivered":
+      activeSteps = 4;
+      fillPercent = 100;
+      break;
+  }
+
+  steps.forEach((step, index) => {
+    if(index < activeSteps){
+      step.classList.add("active");
+    }
   });
+
+  if(fill){
+    fill.style.width = fillPercent + "%";
+  }
+
   timelineSection.style.display = "block";
 }
 
@@ -787,6 +829,19 @@ async function loadTracking(code){
 // ====================== SEARCH BUTTON ======================
 searchBtn.addEventListener("click", ()=> loadTracking(trackingInput.value.trim()));
 </script>
+
+<script>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement(
+    {
+      pageLanguage: 'en'
+    },
+    'google_translate_element'
+  );
+}
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 
 </body>

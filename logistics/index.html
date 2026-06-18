@@ -402,14 +402,25 @@
 
     <!-- Footer Bottom -->
     <div class="footer-container footer-bottom">
-      <div class="language-select">
+      <!-- <div class="language-select">
         <select>
           <option>English (US)</option>
           <option>English (UK)</option>
           <option>Español</option>
           <option>Français</option>
         </select>
-      </div>
+      </div> -->
+      <div class="language-select">
+  <select id="languageSwitcher">
+    <option value="en">English (US)</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+  </select>
+</div>
+
+<div class="language-select">
+  <div id="google_translate_element"></div>
+</div>
       
       <div class="footer-legal">
         Terms of Service &nbsp; | &nbsp; Privacy Policy
@@ -676,6 +687,18 @@ onSnapshot(q, snap => {
 
   <script src="https://unpkg.com/scrollreveal"></script>
   <script src="main.js"></script>
+  <script>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement(
+    {
+      pageLanguage: 'en'
+    },
+    'google_translate_element'
+  );
+}
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 
 

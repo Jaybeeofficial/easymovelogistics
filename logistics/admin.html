@@ -110,7 +110,18 @@
       <option value="Delivered">Delivered</option>
     </select>
 
+    <!-- <textarea id="details" placeholder="Details"></textarea> -->
+
     <textarea id="details" placeholder="Details"></textarea>
+
+<label style="display:block;margin-top:10px;font-weight:600;">
+Package Image
+</label>
+
+<input
+  type="file"
+  id="packageImage"
+  accept="image/*">
 
     <button type="submit" class="primary">Add Shipment</button>
     <button type="button" id="cancelAdd" class="ghost">Cancel</button>
@@ -145,6 +156,8 @@
         <th>Fee</th>
         <th>Package Type</th>
         <th>Weight</th>
+        <!-- <th>Actions</th> -->
+         <th>Package</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -161,8 +174,20 @@
     <input id="e_destinationAddress" placeholder="Destination Address">
     <input id="e_status" placeholder="Status">
     <input id="e_tracking" placeholder="Tracking Number" disabled>
-    <textarea id="e_details" placeholder="Details"></textarea>
-    <div style="margin-top:10px;">
+    <!-- <textarea id="e_details" placeholder="Details"></textarea>
+    <div style="margin-top:10px;"> -->
+      <textarea id="e_details" placeholder="Details"></textarea>
+
+<div style="margin-top:10px;">
+  <img
+    id="packagePreview"
+    src=""
+    style="
+      max-width:200px;
+      border-radius:8px;
+      display:none;
+    ">
+</div>
       <button type="submit" class="primary">Save</button>
       <button type="button" id="deleteBtn" class="ghost">Delete</button>
       <button type="button" id="closeModal" class="ghost">Close</button>
@@ -177,6 +202,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot, getDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCW-RCwz_nyR4r_5crONpHsXOwuX16Wfdo",
@@ -193,6 +225,7 @@ try { getAnalytics(app); } catch(e){}
 
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 const loginForm = document.getElementById('loginForm');
 const loginSection = document.getElementById('loginSection');
@@ -306,14 +339,26 @@ function rowFor(d){
     <td>${escapeHtml(d.courierFee||'')}</td>
     <td>${escapeHtml(d.packageType||'')}</td>
     <td>${escapeHtml(d.weight||'')}</td>
+
     <td>
-      <div class="actions">
+    ${
+    d.imageUrl
+      ? `<img src="${d.imageUrl}"
+             width="50"
+             height="50"
+             style="object-fit:cover;border-radius:6px;">`
+      : 'No Image'
+    }
+    </td>
+
+    <td>
+    <div class="actions">
         <button class="btn ghost viewBtn" data-id="${d.id}">View</button>
         <button class="btn primary editBtn" data-id="${d.id}">Edit</button>
       </div>
     </td>
-  </tr>`;
-}
+    </tr>`;
+  }
 
 function escapeHtml(s){ return s? String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) : ''; }
 
@@ -336,6 +381,15 @@ async function openEditModal(id,opts={}) {
     e_status.value=d.courierStatus||'';
     e_tracking.value=d.trackingNumber||'';
     e_details.value=d.details||'';
+    const preview =
+  document.getElementById('packagePreview');
+
+if(d.imageUrl){
+  preview.src = d.imageUrl;
+  preview.style.display = 'block';
+}else{
+  preview.style.display = 'none';
+}
     modalBackdrop.style.display='flex';
     document.getElementById('modalSub').textContent=`#${id}`;
     Array.from(editForm.elements).forEach(el=> el.disabled = !!opts.readOnly);
@@ -413,8 +467,25 @@ addForm.addEventListener('submit', async ev=>{
   if(!senderName||!receiverName||!originPort||!courierStatus){ showToast('Please fill required fields'); return; }
   try{
     const trk = await generateTracking();
+    let imageUrl = "";
+
+const imageFile =
+  document.getElementById("packageImage").files[0];
+
+if(imageFile){
+
+  const storageRef = ref(
+    storage,
+    `packages/${Date.now()}_${imageFile.name}`
+  );
+
+  await uploadBytes(storageRef, imageFile);
+
+  imageUrl = await getDownloadURL(storageRef);
+}
     const data={
       senderName,
+      imageUrl,
       senderEmail: document.getElementById('senderEmail').value.trim(),
       senderPhone: document.getElementById('senderPhone').value.trim(),
       senderAddress: document.getElementById('senderAddress').value.trim(),
@@ -443,6 +514,7 @@ addForm.addEventListener('submit', async ev=>{
     showToast('Add failed: '+err.message);
   }
 });
+
 
 
 searchInput.addEventListener('input', filterTable);

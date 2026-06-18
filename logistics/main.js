@@ -229,4 +229,67 @@ counters.forEach((counter) => {
     ScrollReveal().reveal('.benefit-cards', { origin: 'bottom', distance: '60px', duration: 1000, interval: 200 });
      ScrollReveal().reveal('.nav-links', { origin: 'bottom', distance: '60px', duration: 1000, interval: 200 });
 
+
+
+
+
+     // ===== Language Switcher =====
+
+const languageSwitcher = document.getElementById("languageSwitcher");
+
+if (languageSwitcher) {
+
+  const translations = {
+    en: {
+      home: "Home",
+      services: "Services",
+      about: "About",
+      solutions: "Solutions",
+      tracking: "Tracking",
+      contact: "Contact Us"
+    },
+
+    es: {
+      home: "Inicio",
+      services: "Servicios",
+      about: "Acerca de",
+      solutions: "Soluciones",
+      tracking: "Seguimiento",
+      contact: "Contáctanos"
+    },
+
+    fr: {
+      home: "Accueil",
+      services: "Services",
+      about: "À propos",
+      solutions: "Solutions",
+      tracking: "Suivi",
+      contact: "Contactez-nous"
+    }
+  };
+
+  languageSwitcher.addEventListener("change", function () {
+
+    const lang = this.value;
+
+    document.querySelector('a[href="index.html"]').textContent =
+      translations[lang].home;
+
+    document.querySelector('a[href="services.html"]').textContent =
+      translations[lang].services;
+
+    document.querySelector('a[href="about.html"]').textContent =
+      translations[lang].about;
+
+    document.querySelector('a[href="solutions.html"]').textContent =
+      translations[lang].solutions;
+
+    document.querySelector('a[href="tracking.html"]').textContent =
+      translations[lang].tracking;
+
+    document.querySelector('.btn').textContent =
+      translations[lang].contact;
+  });
+}
+
     
