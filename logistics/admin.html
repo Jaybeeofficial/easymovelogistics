@@ -203,18 +203,12 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.1/firebase
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot, getDoc, getDocs, where } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL
-} from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCW-RCwz_nyR4r_5crONpHsXOwuX16Wfdo",
   authDomain: "eaymovelogistics.firebaseapp.com",
   projectId: "eaymovelogistics",
-  storageBucket: "eaymovelogistics.firebasestorage.app",
+  // storageBucket: "eaymovelogistics.firebasestorage.app",
   messagingSenderId: "145343790752",
   appId: "1:145343790752:web:77283c9eeeaba3e07253c5",
   measurementId: "G-5BJLXNJETV"
@@ -225,7 +219,9 @@ try { getAnalytics(app); } catch(e){}
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+
+const CLOUDINARY_CLOUD_NAME = "dvfpv8w4d";
+const CLOUDINARY_UPLOAD_PRESET = "easymove_upload";
 
 const loginForm = document.getElementById('loginForm');
 const loginSection = document.getElementById('loginSection');
@@ -457,6 +453,35 @@ async function generateTracking() {
   return trk;
 }
 
+async function uploadImageToCloudinary(file) {
+
+  const formData = new FormData();
+
+  formData.append("file", file);
+  formData.append(
+    "upload_preset",
+    CLOUDINARY_UPLOAD_PRESET
+  );
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+    {
+      method: "POST",
+      body: formData
+    }
+  );
+
+  const data = await response.json();
+
+  if (!data.secure_url) {
+    throw new Error(
+      data.error?.message || "Cloudinary upload failed"
+    );
+  }
+
+  return data.secure_url;
+}
+
 
 addForm.addEventListener('submit', async ev=>{
   ev.preventDefault();
@@ -467,21 +492,34 @@ addForm.addEventListener('submit', async ev=>{
   if(!senderName||!receiverName||!originPort||!courierStatus){ showToast('Please fill required fields'); return; }
   try{
     const trk = await generateTracking();
-    let imageUrl = "";
+//     let imageUrl = "";
+
+// const imageFile =
+//   document.getElementById("packageImage").files[0];
+
+// if(imageFile){
+
+//   const storageRef = ref(
+//     storage,
+//     `packages/${Date.now()}_${imageFile.name}`
+//   );
+
+//   await uploadBytes(storageRef, imageFile);
+
+//   imageUrl = await getDownloadURL(storageRef);
+// }
+
+
+let imageUrl = "";
 
 const imageFile =
   document.getElementById("packageImage").files[0];
 
 if(imageFile){
 
-  const storageRef = ref(
-    storage,
-    `packages/${Date.now()}_${imageFile.name}`
-  );
+  imageUrl =
+    await uploadImageToCloudinary(imageFile);
 
-  await uploadBytes(storageRef, imageFile);
-
-  imageUrl = await getDownloadURL(storageRef);
 }
     const data={
       senderName,
@@ -511,7 +549,9 @@ if(imageFile){
     addForm.reset();
     addSection.style.display='none';
   } catch(err){
-    showToast('Add failed: '+err.message);
+  console.error(err);
+  showToast('Add failed: ' + err.message, 10000);
+
   }
 });
 

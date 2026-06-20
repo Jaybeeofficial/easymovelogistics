@@ -785,11 +785,17 @@ function updateTimeline(status){
   timelineSection.style.display = "block";
 }
 
+
 // ====================== LOAD TRACKING ======================
 async function loadTracking(code){
+
   if(!code) return showToast("Enter a tracking number");
 
-  const q = query(collection(db,"shipment"), where("trackingNumberLower","==", code.toLowerCase()));
+  const q = query(
+    collection(db,"shipment"),
+    where("trackingNumberLower","==",code.toLowerCase())
+  );
+
   const snap = await getDocs(q);
 
   if(snap.empty){
@@ -801,66 +807,125 @@ async function loadTracking(code){
 
   const d = snap.docs[0].data();
 
-  // ====================== DISPLAY ALL DETAILS ======================
+  console.log("Shipment:", d);
+  console.log("Image URL:", d.imageUrl);
+
   detailsSection.innerHTML = `
-  <div class="track-box">
+<div class="track-box">
 
-    <button class="print-btn" onclick="window.print()">Print Receipt</button>
+<button class="print-btn" onclick="window.print()">Print Receipt</button>
 
-    <h2>Tracking #${d.trackingNumber}</h2>
+<h2>Tracking #${d.trackingNumber}</h2>
 
-    <div class="barcode-box">
-      <img src="https://barcode.tec-it.com/barcode.ashx?data=${d.trackingNumber}&code=Code128&dpi=120" alt="barcode">
-    </div>
+<div class="barcode-box">
+<img src="https://barcode.tec-it.com/barcode.ashx?data=${d.trackingNumber}&code=Code128&dpi=120">
+</div>
 
-    <div class="details-grid">
-      <div><strong>Sender:</strong> ${d.senderName}</div>
-      <div><strong>Phone:</strong> ${d.senderPhone||"-"}</div>
-      <div><strong>Address:</strong> ${d.senderAddress||"-"}</div>
+<div class="details-grid">
 
-      <div><strong>Receiver:</strong> ${d.receiverName}</div>
-      <div><strong>Phone:</strong> ${d.receiverPhone||"-"}</div>
-      <div><strong>Address:</strong> ${d.receiverAddress||"-"}</div>
+<div><strong>Sender:</strong> ${d.senderName}</div>
+<div><strong>Phone:</strong> ${d.senderPhone || "-"}</div>
+<div><strong>Address:</strong> ${d.senderAddress || "-"}</div>
 
-      <div><strong>Origin Port:</strong> ${d.originPort}</div>
-      <div><strong>Destination:</strong> ${d.destinationAddress}</div>
-      <div><strong>Mode:</strong> ${d.shipmentMode||"-"}</div>
+<div><strong>Receiver:</strong> ${d.receiverName}</div>
+<div><strong>Phone:</strong> ${d.receiverPhone || "-"}</div>
+<div><strong>Address:</strong> ${d.receiverAddress || "-"}</div>
 
-      <div><strong>Package:</strong> ${d.packageType||"-"}</div>
-      <div><strong>Weight:</strong> ${d.weight||"-"}</div>
-      <div><strong>Courier Fee:</strong> ${d.courierFee||"-"}</div>
+<div><strong>Origin Port:</strong> ${d.originPort}</div>
+<div><strong>Destination:</strong> ${d.destinationAddress}</div>
 
-      <div><strong>Status:</strong> ${d.courierStatus}</div>
-      <div><strong>Pickup Date:</strong> ${d.pickupDate||"-"}</div>
-      <div><strong>Estimated Delivery:</strong> ${d.estimatedDelivery||"-"}</div>
+<div><strong>Mode:</strong> ${d.shipmentMode || "-"}</div>
 
-      <div style="grid-column:1/4;"><strong>Details:</strong> ${d.details||"-"}</div>
-    </div>
-  </div>
+<div><strong>Package:</strong> ${d.packageType || "-"}</div>
+<div><strong>Weight:</strong> ${d.weight || "-"}</div>
+<div><strong>Courier Fee:</strong> ${d.courierFee || "-"}</div>
+
+<div><strong>Status:</strong> ${d.courierStatus}</div>
+<div><strong>Pickup Date:</strong> ${d.pickupDate || "-"}</div>
+<div><strong>Estimated Delivery:</strong> ${d.estimatedDelivery || "-"}</div>
+
+<div style="grid-column:1 / -1;">
+<strong>Details:</strong> ${d.details || "-"}
+</div>
+
+</div>
+
+${
+d.imageUrl
+? `
+<div style="margin-top:30px;text-align:center;">
+
+<h3>Package Image</h3>
+
+<img
+src="${d.imageUrl}"
+alt="Package Image"
+style="
+max-width:350px;
+width:100%;
+border-radius:10px;
+border:1px solid #ddd;
+box-shadow:0 2px 8px rgba(0,0,0,.15);
+"
+onload="console.log('Image Loaded')"
+onerror="console.log('Image Failed')">
+
+</div>
+`
+: `
+<div style="margin-top:30px;text-align:center;color:#777;">
+No Package Image Available
+</div>
+`
+}
+
+</div>
 `;
 
-  detailsSection.style.display="block";
+  detailsSection.style.display = "block";
 
-  // ================= TIMELINE =================
   updateTimeline(d.courierStatus);
 
-  // ================= HISTORY =================
   const historySnap = await getDocs(collection(snap.docs[0].ref,"history"));
-  historyTable.innerHTML="";
+
+  historyTable.innerHTML = "";
+
   if(historySnap.empty){
+
     historyWrapper.style.display="none";
-  } else {
+
+  }else{
+
     historyWrapper.style.display="block";
+
     let records=[];
-    historySnap.forEach(h=> records.push(h.data()));
-    records.sort((a,b)=> a.timestamp - b.timestamp);
-    records.forEach(h=>{
-      const date = h.timestamp ? new Date(h.timestamp).toLocaleString() : "-";
-      historyTable.insertAdjacentHTML("beforeend", `
-        <tr><td>${date}</td><td>${h.courierStatus||""}</td><td>${h.details||""}</td></tr>
-      `);
+
+    historySnap.forEach(h=>records.push(h.data()));
+
+    records.sort((a,b)=>{
+      const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+      const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+      return ta - tb;
     });
+
+    records.forEach(h=>{
+
+      const date = h.timestamp
+        ? h.timestamp.toDate().toLocaleString()
+        : "-";
+
+      historyTable.insertAdjacentHTML("beforeend",`
+<tr>
+<td>${date}</td>
+<td>${h.courierStatus || ""}</td>
+<td>${h.details || ""}</td>
+</tr>
+`);
+
+    });
+
   }
+
 }
 
 // ====================== SEARCH BUTTON ======================
